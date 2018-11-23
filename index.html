@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+
+    <title>File Converter</title>
+  </head>
+  <body>
+    <h1>Upload file</h1>
+    <hr>
+    <form id="fileUpload" enctype='multipart/form-data'>
+        <input id="fileInput" name="fileInput" type="file">
+        <input type="submit" value="Upload" name="submit">
+    </form>
+    <!-- jQuery first, then Popper.js, then Bootstrap JS and FileSaver.js -->
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="http://cdn.jsdelivr.net/g/filesaver.js"></script>
+
+    <!-- Optional JavaScript -->
+    <script>
+
+    const unocovInstance = "http://127.0.0.1";
+
+    function SaveAsFile(t,f,m) {
+        try {
+            var b = new Blob([t],{type:m});
+            saveAs(b, f);
+        } catch (e) {
+            window.open("data:"+m+"," + encodeURIComponent(t), '_blank','');
+        }
+    }
+
+    $("#fileUpload")
+        .submit(function(e){
+        e.preventDefault();
+        console.log("Upload clicked");
+
+        let fileLocation =  $('#fileInput').val();
+        let fileType = $('#fileInput').val().split('.').pop();
+        
+        console.log(fileLocation, fileType);
+
+        if(fileType.toLowerCase() === "pdf")
+        {
+            console.info("File already a PDF.");
+        }
+        else
+        {
+            var files = document.getElementById('fileInput').files;
+            if (!files.length) {
+                return alert('Please choose a file to upload first.');
+            }
+            var file = files[0];
+
+            var form = new FormData();
+            form.append("file", file);
+
+            var settings = {
+                "async": true,
+                "crossDomain": true,
+                "url": `${unocovInstance}/unoconv/pdf`,
+                "method": "POST",
+                "processData": false,
+                "contentType": false,
+                "data": form
+            }
+
+            $.ajax(settings)
+                .done(function (response) {
+                    console.log("Response", response);
+                    SaveAsFile(response,"filename.pdf","application/pdf; charset=utf-8");
+                });
+
+        }
+    });
+    </script>
+</body>
+</html>
