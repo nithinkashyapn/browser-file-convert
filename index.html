@@ -13,7 +13,7 @@
   <body>
     <h1>Upload file</h1>
     <hr>
-    <form id="fileUpload" enctype='multipart/form-data'>
+    <form id="fileUpload">
         <input id="fileInput" name="fileInput" type="file">
         <input type="submit" value="Upload" name="submit">
     </form>
@@ -30,56 +30,53 @@
 
     function SaveAsFile(t,f,m) {
         try {
-            var b = new Blob([t],{type:m});
+            var b = new Blob([t]);
             saveAs(b, f);
         } catch (e) {
             window.open("data:"+m+"," + encodeURIComponent(t), '_blank','');
         }
     }
 
+    function randomString(){
+        return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    }
+
     $("#fileUpload")
         .submit(function(e){
-        e.preventDefault();
-        console.log("Upload clicked");
+            e.preventDefault();
+            console.log("Upload clicked");
 
-        let fileLocation =  $('#fileInput').val();
-        let fileType = $('#fileInput').val().split('.').pop();
-        
-        console.log(fileLocation, fileType);
-
-        if(fileType.toLowerCase() === "pdf")
-        {
-            console.info("File already a PDF.");
-        }
-        else
-        {
-            var files = document.getElementById('fileInput').files;
-            if (!files.length) {
-                return alert('Please choose a file to upload first.');
+            let fileLocation =  $('#fileInput').val();
+            let fileType = $('#fileInput').val().split('.').pop();
+            
+            if(fileType.toLowerCase() === "pdf")
+            {
+                console.info("File already a PDF.");
             }
-            var file = files[0];
+            else
+            {
+                var files = document.getElementById('fileInput').files;
+                if (!files.length) {
+                    return alert('Please choose a file to upload first.');
+                }
+                var file = files[0];
 
-            var form = new FormData();
-            form.append("file", file);
+                var data = new FormData();
+                data.append("file", file);
 
-            var settings = {
-                "async": true,
-                "crossDomain": true,
-                "url": `${unocovInstance}/unoconv/pdf`,
-                "method": "POST",
-                "processData": false,
-                "contentType": false,
-                "data": form
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", `${unocovInstance}/unoconv/pdf`);
+                xhr.withCredentials = true;
+                xhr.responseType = 'blob';
+                
+                xhr.onload = function() {
+                    SaveAsFile(xhr.response, randomString() + ".pdf" , "application/pdf; charset=utf-8");
+                }
+
+                xhr.send(data);
+
             }
-
-            $.ajax(settings)
-                .done(function (response) {
-                    console.log("Response", response);
-                    SaveAsFile(response,"filename.pdf","application/pdf; charset=utf-8");
-                });
-
-        }
-    });
+        });
     </script>
 </body>
 </html>
